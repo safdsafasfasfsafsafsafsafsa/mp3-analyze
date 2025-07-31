@@ -6,11 +6,19 @@ export default function App() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // try {
+      //   const res = await fetch("/members");
+      //   const result = await res.json();
+      //   setData(result.members);
+      //   console.log("result.members", result.members);
+      // } catch (error) {
+      //   console.error("error", error);
+      // }
       try {
-        const res = await fetch("/members");
+        const res = await fetch("/");
         const result = await res.json();
-        setData(result.members);
-        console.log("result.members", result.members);
+        setData(result);
+        console.log("result", result);
       } catch (error) {
         console.error("error", error);
       }
