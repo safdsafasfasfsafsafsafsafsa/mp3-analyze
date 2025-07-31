@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 
 export default function App() {
+  const API_BASE = process.env.REACT_APP_API_BASE;
+
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -15,12 +17,12 @@ export default function App() {
       //   console.error("error", error);
       // }
       try {
-        const res = await fetch("/");
+        const res = await fetch(`${API_BASE}/`);
         const result = await res.json();
         setData(result);
-        console.log("result", result);
+        console.log("Result:", result);
       } catch (error) {
-        console.error("error", error);
+        console.error("Error:", error);
       }
     };
     fetchData();
@@ -30,9 +32,8 @@ export default function App() {
     <div>
       <h1>Members</h1>
       <ul>
-        {data.map((member, index) => (
-          <li key={index}>{member}</li>
-        ))}
+        {data.members &&
+          data.members.map((member, index) => <li key={index}>{member}</li>)}
       </ul>
     </div>
   );
