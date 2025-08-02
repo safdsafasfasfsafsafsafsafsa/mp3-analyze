@@ -3,7 +3,7 @@ import requests from "../../api/requests";
 
 export default function MainPage() {
   return (
-    <div>
+    <div className="main">
       <Submit />
     </div>
   );
