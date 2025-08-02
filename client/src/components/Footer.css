@@ -1,0 +1,34 @@
+@import "./Root.css";
+
+body,
+h1,
+h2,
+ul,
+p {
+  margin: 0;
+  padding: 0;
+}
+li {
+  list-style-type: none;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer {
+  background-color: var(--main-color);
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 30px;
+  z-index: 1000;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer p {
+  color: var(--text-color);
+}

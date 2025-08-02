@@ -1,5 +1,21 @@
 @import "./Root.css";
 
+body,
+h1,
+h2,
+ul,
+p {
+  margin: 0;
+  padding: 0;
+}
+li {
+  list-style-type: none;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .nav {
   background-color: var(--main-color);
   position: fixed;
@@ -18,4 +34,8 @@
   left: 40px;
   width: 80px;
   object-fit: contain;
+}
+
+.nav__logo:hover {
+  background-color: bisque;
 }
