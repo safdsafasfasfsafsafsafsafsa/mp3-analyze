@@ -1,0 +1,33 @@
+@import "./Root.css";
+
+.centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  /* flex: 1; */
+}
+
+.main-page {
+  /* https://spacemonkey925.tistory.com/52 */
+  background-image: linear-gradient(to bottom, #c8dde6 0%, #c1f7e1 100%),
+    url("../../public/img/music-4334557_1920.jpg");
+  background-blend-mode: multiply;
+  display: flex;
+  flex-direction: column;
+}
+
+.title-h1 {
+  color: var(--text-color);
+  display: inline-block;
+  font-size: 80px;
+  font-weight: bold;
+  padding-bottom: 20px;
+}
+
+.title-h2 {
+  color: var(--text-color);
+  display: inline-block;
+  font-size: 30px;
+  padding-bottom: 30px;
+}

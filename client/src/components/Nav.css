@@ -1,41 +1,29 @@
-@import "./Root.css";
-
-body,
-h1,
-h2,
-ul,
-p {
-  margin: 0;
-  padding: 0;
-}
-li {
-  list-style-type: none;
-}
-a {
-  color: inherit;
-  text-decoration: none;
-}
+@import "../styles/Root.css";
 
 .nav {
   background-color: var(--main-color);
-  position: fixed;
+  /* position: fixed; */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   top: 0;
   width: 100%;
   height: 30px;
   z-index: 1000;
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid rgb(25, 25, 25);
 }
 
 .nav__logo {
-  position: fixed;
-  left: 40px;
-  width: 80px;
+  /* position: fixed; */
+  display: inline-block;
+  left: 60px;
+  width: 120px;
+  margin-left: 20px;
+  padding: 10px;
   object-fit: contain;
 }
 
 .nav__logo:hover {
-  background-color: bisque;
+  cursor: pointer;
 }

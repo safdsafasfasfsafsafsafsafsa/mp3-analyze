@@ -1,0 +1,15 @@
+body,
+h1,
+h2,
+ul,
+p {
+  margin: 0;
+  padding: 0;
+}
+li {
+  list-style-type: none;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
