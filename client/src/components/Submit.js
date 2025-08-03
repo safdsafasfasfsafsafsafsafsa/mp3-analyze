@@ -1,10 +1,14 @@
-import React, { useRef, useState } from "react";
-import axios from "../api/axios";
+import React, { useRef, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { FileContext } from "../contexts/FileContext";
 import "./Submit.css";
 
-export default function Submit() {
+export default function Submit({ nav }) {
   const fileInputRef = useRef();
-  const [file, setFile] = useState(null);
+  const navigate = useNavigate();
+
+  // const [file, setFile] = useState(null);
+  const { setFile } = useContext(FileContext);
 
   const handleButtonClick = () => {
     fileInputRef.current.click();
@@ -13,6 +17,8 @@ export default function Submit() {
   const handleFileUpload = (e) => {
     setFile(e.target.files[0]);
     console.log(e.target.files[0]);
+    console.log("nav", nav);
+    navigate(`/${nav}`);
   };
 
   // const HandleSubmit = async () => {
@@ -29,6 +35,7 @@ export default function Submit() {
       </button>
       <input
         type="file"
+        accept=".mp3. .wav, audio/*"
         ref={fileInputRef}
         onChange={handleFileUpload}
         style={{ display: "none" }}
