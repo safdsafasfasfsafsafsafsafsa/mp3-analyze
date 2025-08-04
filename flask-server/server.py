@@ -19,6 +19,9 @@ import librosa
 import numpy as np
 from pydub import AudioSegment
 from werkzeug.utils import secure_filename
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000"])
@@ -45,25 +48,32 @@ def convert_to_mp3(filepath):
 
 # 분석 함수
 def analyze_audio(path):
+    # 오디오 로딩
     y, sr = librosa.load(path, sr=None)
+    minutes = int(duration // 60)
+    seconds = int(duration % 60)
 
     # BPM 추출
     tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
 
     # Duration
     duration = librosa.get_duration(y=y, sr=sr)
-    duration_str = f"{int(duration // 60)}:{int(duration % 60):02}"
+    duration_str = f"{minutes}:{seconds:02d}"
 
     # Rhythm Density
     _, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-    rhythm_density = len(beat_times) / (duration / 60)
+    beats = np.atleast_1d(beats)  # 배열이 아닐 경우 강제로 배열로 변환
+    beat_times = librosa.frames_to_time(beats, sr=sr)
 
-    # RMS Energy
+    if beat_times.size > 0:
+        rhythm_density = len(beat_frames) / (duration / 60)
+    else:
+        rhythm_density = 0
+
+    # RMS Energy & Crest Factor
     rms = librosa.feature.rms(y=y)[0]
     avg_rms = float(np.mean(rms))
 
-    # Crest Factor
     peak = np.max(np.abs(y))
     crest_factor = float(peak / avg_rms) if avg_rms != 0 else 0
 
@@ -79,13 +89,42 @@ def analyze_audio(path):
     else:
         mixing_type = "극단적 다이내믹 (클래식, 언프로세스드 등)"
 
+    # 시각화
+    plt.figure(figsize=(14, 4))
+    times = librosa.times_like(rms, sr=sr)
+    plt.plot(times, rms, label='RMS Energy')
+    plt.vlines(beat_times, 0, np.max(rms), color='r', alpha=0.5, linestyle='--', label='Beats')
+    plt.xlabel('Time (mm:ss)')
+    plt.xticks(
+        ticks=np.arange(0, duration, 15),
+        labels=[f"{int(t//60)}:{int(t%60):02d}" for t in np.arange(0, duration, 15)]
+    )
+    plt.ylabel('Energy')
+    plt.title('RMS Energy & Beat Positions')
+    plt.legend()
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
+    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+
+    plt.close()
+
     return {
         "bpm": round(float(tempo), 1),
         "duration": duration_str,
         "rhythm_density": round(rhythm_density, 2),
         "crest_factor": round(crest_factor, 2),
-        "mixing_type": mixing_type
+        "mixing_type": mixing_type,
+        'image': image_base64
     }
+
+# 호출용 api: 첫 페이지는 동작 확인만
+@app.route('/')
+def index():
+    return 'Server is running.'
 
 # 업로드 및 분석 API
 @app.route('/analyze', methods=['POST'])

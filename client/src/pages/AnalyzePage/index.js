@@ -10,6 +10,7 @@ export default function AnalyzePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const result = location.state?.result;
+  const resultImage = location.state?.result?.image;
 
   const { file } = useContext(FileContext);
 
@@ -23,6 +24,7 @@ export default function AnalyzePage() {
   return file ? (
     <section className="analyze-page centered">
       <p>{file.bpm}</p>
+      <img src={`data:image/png;base64,${resultImage}`} alt="img" />
     </section>
   ) : (
     <section className="analyze-page centered">nnn</section>
