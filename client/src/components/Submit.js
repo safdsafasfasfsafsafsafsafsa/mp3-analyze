@@ -8,6 +8,7 @@ export default function Submit({ nav }) {
   const navigate = useNavigate();
 
   // const [file, setFile] = useState(null);
+  const { file } = useContext(FileContext);
   const { setFile } = useContext(FileContext);
 
   const handleButtonClick = () => {
@@ -17,16 +18,8 @@ export default function Submit({ nav }) {
   const handleFileUpload = (e) => {
     setFile(e.target.files[0]);
     console.log(e.target.files[0]);
-    console.log("nav", nav);
     navigate(`/${nav}`);
   };
-
-  // const HandleSubmit = async () => {
-  //   if (!file) {
-  //     alert("파일 선택");
-  //     return;
-  //   }
-  // };
 
   return (
     <div>

@@ -2,6 +2,10 @@ import "../styles/Reset.css";
 import "./Nav.css";
 
 export default function Nav() {
+  const handlePageReload = () => {
+    window.location.href = "/";
+  };
+
   console.log("nav");
 
   return (
@@ -10,7 +14,7 @@ export default function Nav() {
         src="/img/mp3-analyze.png"
         alt="mp3-analyze logo"
         className="nav__logo"
-        onClick={() => window.location.reload()}
+        onClick={handlePageReload}
       />
     </nav>
   );

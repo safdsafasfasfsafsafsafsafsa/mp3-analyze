@@ -1,94 +1,72 @@
-from flask import Flask, request, jsonify
-import os
+# 파일 업로드 (Colab 전용)
+from google.colab import files
 import librosa
+import librosa.display
 import numpy as np
-from pydub import AudioSegment
-from werkzeug.utils import secure_filename
+import matplotlib.pyplot as plt
+import io
 
-app = Flask(__name__)
-UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+uploaded = files.upload()
+for fn in uploaded.keys():
+    file_path = fn
 
-# 파일 확장자 확인 함수
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# 오디오 로딩
+y, sr = librosa.load(file_path, sr=None)
+duration = librosa.get_duration(y=y, sr=sr)
+minutes = int(duration // 60)
+seconds = int(duration % 60)
+duration_str = f"{minutes}:{seconds:02d}"
 
-# wav, flac -> mp3 자동 변환 함수
-def convert_to_mp3(filepath):
-    ext = filepath.rsplit('.', 1)[1].lower()
-    if ext == 'mp3':
-        return filepath  # 변환 필요 없음
+# 비트 추출
+tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
+beats = np.atleast_1d(beats)  # 배열이 아닐 경우 강제로 배열로 변환
+beat_times = librosa.frames_to_time(beats, sr=sr)
 
-    sound = AudioSegment.from_file(filepath, format=ext)
-    mp3_path = filepath.rsplit('.', 1)[0] + '.mp3'
-    sound.export(mp3_path, format='mp3')
-    os.remove(filepath)  # 원본 제거
-    return mp3_path
 
-# 분석 함수
-def analyze_audio(path):
-    y, sr = librosa.load(path, sr=None)
+# 리듬 밀도 계산
+if beats.size > 0:
+    rhythm_density = len(beats) / (duration / 60)
+else:
+    rhythm_density = 0
 
-    # BPM 추출
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+# RMS 에너지 및 Crest Factor 계산
+rms = librosa.feature.rms(y=y)[0]
+rms_mean = float(np.mean(rms))
+crest_factor = np.max(np.abs(y)) / (rms_mean + 1e-7)
 
-    # Duration
-    duration = librosa.get_duration(y=y, sr=sr)
-    duration_str = f"{int(duration // 60)}:{int(duration % 60):02}"
-
-    # Rhythm Density
-    _, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-    rhythm_density = len(beat_times) / (duration / 60)
-
-    # RMS Energy
-    rms = librosa.feature.rms(y=y)[0]
-    avg_rms = float(np.mean(rms))
-
-    # Crest Factor
-    peak = np.max(np.abs(y))
-    crest_factor = float(peak / avg_rms) if avg_rms != 0 else 0
-
-    # Mixing 성향 분류 (간단 버전)
-    if crest_factor < 2.0:
-        mixing_type = "매우 압축된 믹싱 (EDM, Trap 등)"
-    elif crest_factor < 3.0:
-        mixing_type = "적당히 압축된 믹싱 (Pop, House 등)"
-    elif crest_factor < 4.0:
-        mixing_type = "자연스러운 다이내믹 (Acoustic, Funk 등)"
-    elif crest_factor < 6.0:
-        mixing_type = "다이내믹 강조 믹싱 (Jazz, Rock 등)"
+# 믹싱 성향 판단
+def classify_crest_factor(cf):
+    if cf < 2.0:
+        return "매우 압축된 믹싱 (EDM, Trap 등)"
+    elif cf < 3.0:
+        return "적당히 압축된 믹싱 (Pop, House 등)"
+    elif cf < 4.0:
+        return "자연스러운 다이내믹 (Acoustic, Funk 등)"
+    elif cf < 6.0:
+        return "다이내믹 강조 믹싱 (Jazz, Rock 등)"
     else:
-        mixing_type = "극단적 다이내믹 (클래식, 언프로세스드 등)"
+        return "극단적 다이내믹 (클래식, 언프로세스드 등)"
 
-    return {
-        "bpm": round(float(tempo), 1),
-        "duration": duration_str,
-        "rhythm_density": round(rhythm_density, 2),
-        "crest_factor": round(crest_factor, 2),
-        "mixing_type": mixing_type
-    }
+# 출력
+print(f"\n🎼 {file_path}")
+print(f" - BPM: {tempo[0]:.1f}")
+print(f" - Rhythm Density: {rhythm_density:.2f} (DnB / EDM / 실험적 리듬 기준)")
+print(f" - Duration: {duration_str}")
+print(f" - RMS 평균 에너지: {rms_mean:.4f}")
+print(f" - Crest Factor: {crest_factor:.2f} ({classify_crest_factor(crest_factor)})")
 
-# 업로드 및 분석 API
-@app.route('/analyze', methods=['POST'])
-def upload_and_analyze():
-    if 'file' not in request.files:
-        return jsonify({"error": "파일이 첨부되지 않았습니다."}), 400
-
-    file = request.files['file']
-    if file.filename == '' or not allowed_file(file.filename):
-        return jsonify({"error": "지원하지 않는 파일 형식입니다."}), 400
-
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-
-    # 필요시 mp3로 변환
-    filepath = convert_to_mp3(filepath)
-
-    result = analyze_audio(filepath)
-    return jsonify(result)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# 시각화
+plt.figure(figsize=(14, 4))
+times = librosa.times_like(rms, sr=sr)
+plt.plot(times, rms, label='RMS Energy')
+plt.vlines(beat_times, 0, np.max(rms), color='r', alpha=0.5, linestyle='--', label='Beats')
+plt.xlabel('Time (mm:ss)')
+plt.xticks(
+    ticks=np.arange(0, duration, 15),
+    labels=[f"{int(t//60)}:{int(t%60):02d}" for t in np.arange(0, duration, 15)]
+)
+plt.ylabel('Energy')
+plt.title('RMS Energy & Beat Positions')
+plt.legend()
+plt.tight_layout()
+plt.show()

@@ -12,6 +12,9 @@
   /* https://spacemonkey925.tistory.com/52 */
   background-image: linear-gradient(to bottom, #c8dde6 0%, #c1f7e1 100%),
     url("../../public/img/music-4334557_1920.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   background-blend-mode: multiply;
   display: flex;
   flex-direction: column;

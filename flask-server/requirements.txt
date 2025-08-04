@@ -2,4 +2,5 @@ flask
 flask-cors
 librosa
 pydub
+matplotlib
 gunicorn
