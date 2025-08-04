@@ -22,9 +22,11 @@ from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 import io
 import base64
+import traceback
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000"])
+# CORS(app, origins=["http://localhost:3000"])
+CORS(app)
 
 UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
@@ -129,22 +131,26 @@ def index():
 # 업로드 및 분석 API
 @app.route('/analyze', methods=['POST'])
 def upload_and_analyze():
-    if 'file' not in request.files:
-        return jsonify({"error": "파일이 첨부되지 않았습니다."}), 400
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "파일이 첨부되지 않았습니다."}), 400
 
-    file = request.files['file']
-    if file.filename == '' or not allowed_file(file.filename):
-        return jsonify({"error": "지원하지 않는 파일 형식입니다."}), 400
+        file = request.files['file']
+        if file.filename == '' or not allowed_file(file.filename):
+            return jsonify({"error": "지원하지 않는 파일 형식입니다."}), 400
 
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(filepath)
 
-    # 필요시 mp3로 변환
-    filepath = convert_to_mp3(filepath)
+        # 필요시 mp3로 변환
+        filepath = convert_to_mp3(filepath)
 
-    result = analyze_audio(filepath)
-    return jsonify(result)
+        result = analyze_audio(filepath)
+        return jsonify(result)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

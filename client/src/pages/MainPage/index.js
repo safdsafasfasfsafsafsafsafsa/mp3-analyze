@@ -14,10 +14,13 @@ export default function MainPage() {
   const { file } = useContext(FileContext);
 
   useEffect(() => {
-    if (!file) {
-      navigate("/");
+    // if (file === null) {
+    //   navigate("/");
+    // }
+    if (file) {
+      console.log("file here");
+      fetchData(file);
     }
-    fetchData(file);
   }, [file]);
 
   const fetchData = async (newFile) => {
@@ -35,7 +38,7 @@ export default function MainPage() {
 
       navigate(`/analyze`, { state: { result: resultData } });
     } catch (error) {
-      console.Console("Error", error);
+      console.error("Error", error);
     }
   };
 

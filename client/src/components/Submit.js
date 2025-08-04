@@ -17,7 +17,7 @@ export default function Submit({ nav }) {
 
   const handleFileUpload = (e) => {
     setFile(e.target.files[0]);
-    console.log(e.target.files[0]);
+    console.log("check:", e.target.files[0]);
     navigate(`/${nav}`);
   };
 
