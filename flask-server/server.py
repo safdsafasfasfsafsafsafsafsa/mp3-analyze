@@ -26,7 +26,7 @@ import traceback
 import logging
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 # CORS(app)
 
 UPLOAD_FOLDER = './uploads'
