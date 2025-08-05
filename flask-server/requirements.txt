@@ -6,3 +6,5 @@ librosa==0.10.1
 pydub
 matplotlib
 gunicorn
+setuptools>=65.0.0
+wheel
