@@ -168,6 +168,7 @@ CORS(app)  # CORS 설정
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.environ["NUMBA_DISABLE_JIT"] = "1"   # jit 충돌 테스트
 
 logging.basicConfig(format='(%(asctime)s) %(levelname)s:%(message)s',
                     datefmt ='%m/%d %I:%M:%S %p',
@@ -195,9 +196,11 @@ def analyze():
 
     try:
         # librosa로 오디오 로딩
+        logger.debug('fl 4-1')
         y, sr = librosa.load(filepath, sr=None)
+        logger.debug('fl 4-2')
         duration = librosa.get_duration(y=y, sr=sr)
-        logger.debug('fl 4')
+        logger.debug('fl 4-3')
 
         # 원하는 결과값만 추출 (예: 길이, 샘플링레이트)
         result = {
