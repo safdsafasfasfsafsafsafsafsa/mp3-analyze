@@ -57,7 +57,7 @@ def convert_to_mp3(filepath):
 
 # 분석 함수
 def analyze_audio(path):
-    # 오디오 로딩
+    # 오디오 로딩(타임아웃 문제?)
     logger.debug('analyze 1')
     y, sr = librosa.load(path, sr=None)
     logger.debug('analyze 2')
@@ -75,6 +75,7 @@ def analyze_audio(path):
     duration_str = f"{minutes}:{seconds:02d}"
 
     # Rhythm Density
+    # _, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     beats = np.atleast_1d(beats)  # 배열이 아닐 경우 강제로 배열로 변환
     beat_times = librosa.frames_to_time(beats, sr=sr)
 

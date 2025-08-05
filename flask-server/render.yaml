@@ -3,7 +3,7 @@ services:
     name: flask-server
     env: python
     buildCommand: pip install --use-pep517 -r requirements.txt
-    startCommand: gunicorn server:app
+    startCommand: gunicorn server:app --timeout 120
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.13
