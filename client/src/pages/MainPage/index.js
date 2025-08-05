@@ -1,10 +1,10 @@
 import React, { useRef, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileContext } from "../../contexts/FileContext";
-import axios from "../../api/axios";
 
-import Submit from "../../components/Submit";
+import axios from "../../api/axios";
 import requests from "../../api/requests";
+import Submit from "../../components/Submit";
 
 import "../../styles/Reset.css";
 import "../../styles/PageLayout.css";
@@ -14,9 +14,6 @@ export default function MainPage() {
   const { file } = useContext(FileContext);
 
   useEffect(() => {
-    // if (file === null) {
-    //   navigate("/");
-    // }
     if (file) {
       console.log("file here");
       fetchData(file);
