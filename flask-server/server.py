@@ -168,6 +168,11 @@ CORS(app)  # CORS 설정
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# 호출용 api: 첫 페이지는 동작 확인만
+@app.route('/')
+def index():
+    return 'Server is running.'
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     if "file" not in request.files:
