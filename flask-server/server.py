@@ -192,7 +192,7 @@ def analyze():
     # 파일 저장
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
-    logger.debug('fl 3')
+    logger.debug('fl 3')    # 여기까지는 됨
 
     try:
         # librosa로 오디오 로딩
