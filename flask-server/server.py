@@ -184,20 +184,20 @@ def analyze():
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 
-    logger.info('fl 1')
+    logger.debug('fl 1')
     file = request.files["file"]
-    logger.info('fl 2')
+    logger.debug('fl 2')
 
     # 파일 저장
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
-    logger.info('fl 3')
+    logger.debug('fl 3')
 
     try:
         # librosa로 오디오 로딩
         y, sr = librosa.load(filepath, sr=None)
         duration = librosa.get_duration(y=y, sr=sr)
-        logger.info('fl 4')
+        logger.debug('fl 4')
 
         # 원하는 결과값만 추출 (예: 길이, 샘플링레이트)
         result = {
@@ -208,7 +208,7 @@ def analyze():
         }
 
         # 파일은 나중에 삭제하거나 캐시 폴더 정리 필요
-        logger.info('fl 5')
+        logger.debug('fl 5')
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
