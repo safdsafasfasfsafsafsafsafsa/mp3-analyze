@@ -28,11 +28,15 @@ export default function MainPage() {
     formData.append("file", newFile);
 
     try {
+      console.log("loading...1");
+
       const response = await axios.post("/analyze", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      console.log("loading...2");
 
       const resultData = response.data;
 
