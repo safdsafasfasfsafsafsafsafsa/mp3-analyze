@@ -32,7 +32,7 @@ CORS(app, origins=["http://localhost:3000"])
 UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.environ["NUMBA_DISABLE_JIT"] = "1"   # jit 충돌 테스트
+# os.environ["NUMBA_DISABLE_JIT"] = "1"   # jit 충돌 테스트
 
 logging.basicConfig(format='(%(asctime)s) %(levelname)s:%(message)s',
                     datefmt ='%m/%d %I:%M:%S %p',
@@ -58,19 +58,23 @@ def convert_to_mp3(filepath):
 # 분석 함수
 def analyze_audio(path):
     # 오디오 로딩
+    logger.debug('analyze 1')
     y, sr = librosa.load(path, sr=None)
+    logger.debug('analyze 2')
     minutes = int(duration // 60)
     seconds = int(duration % 60)
 
-    # BPM 추출
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+    # BPM 추출(여기서 numba - jit 이슈 나오는거 같은데)
+    logger.debug('analyze 3')
+    # tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)    # 왜 같은 코드가 2번 나왔지?
+    logger.debug('analyze 4')
 
     # Duration
     duration = librosa.get_duration(y=y, sr=sr)
     duration_str = f"{minutes}:{seconds:02d}"
 
     # Rhythm Density
-    _, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     beats = np.atleast_1d(beats)  # 배열이 아닐 경우 강제로 배열로 변환
     beat_times = librosa.frames_to_time(beats, sr=sr)
 
@@ -162,7 +166,7 @@ def upload_and_analyze():
 
         logger.debug('fl 8')
         result = analyze_audio(filepath)
-        
+
         return jsonify(result)
     except Exception as e:
         traceback.print_exc()
