@@ -187,6 +187,7 @@ def analyze():
 
     logger.debug('fl 1')
     file = request.files["file"]
+    logger.debug(file)
     logger.debug('fl 2')
 
     # 파일 저장
