@@ -1,12 +1,7 @@
-build:
-  pythonVersion: 3.11
-
 services:
   - type: web
     name: flask-server
     env: python
     buildCommand: |
-      pip install --upgrade pip
-      pip install setuptools wheel
       pip install --use-pep517 -r requirements.txt
     startCommand: gunicorn server:app

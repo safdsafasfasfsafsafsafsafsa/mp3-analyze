@@ -1,10 +1,8 @@
-setuptools>=65.0.0
-wheel
+# setuptools>=65.0.0
+# wheel
 flask
 flask-cors
-numpy==1.24.4
-numba==0.56.4
-librosa==0.10.1
+librosa
 pydub
 matplotlib
 gunicorn
