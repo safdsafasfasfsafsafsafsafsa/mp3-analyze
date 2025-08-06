@@ -16,6 +16,9 @@ export default function MainPage() {
   useEffect(() => {
     if (file) {
       console.log("file here");
+      console.log(file);
+      console.log(typeof file);
+      console.log(file instanceof File); // true 여야 제대로 작동
       fetchData(file);
     }
   }, [file]);
@@ -33,6 +36,7 @@ export default function MainPage() {
         },
       });
 
+      console.log(response.data);
       console.log("loading...2");
 
       const resultData = response.data;
@@ -40,6 +44,7 @@ export default function MainPage() {
       navigate(`/analyze`, { state: { result: resultData } });
     } catch (error) {
       console.error("Error", error);
+      console.error("upload error", error.response?.data || error.message);
     }
   };
 
