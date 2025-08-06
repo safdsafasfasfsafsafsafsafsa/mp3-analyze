@@ -10,7 +10,8 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-FASTAPI_SERVER_URL = "http://docker-fastapi-host:8000/analyze"
+# FASTAPI_SERVER_URL = "http://docker-fastapi-host:8000/analyze"
+FASTAPI_SERVER_URL = "http://host.docker.internal:8000/analyze"
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'mp3', 'wav', 'flac'}
