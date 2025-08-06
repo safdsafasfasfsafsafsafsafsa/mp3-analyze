@@ -107,17 +107,27 @@ def analyze_audio(path):
 
 @app.get('/')
 async def index():
-    return 'Server is running.'
+    return {"status": "running"}
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
-    if not allowed_file(file.filename):
-        raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다.")
-    contents = await file.read()
-    tmp_path = f"/tmp/{file.filename}"
-    with open(tmp_path, "wb") as f:
-        f.write(contents)
-    mp3_path = convert_to_mp3(tmp_path)
-    result = analyze_audio(mp3_path)
-    os.remove(mp3_path)
-    return result
+    try:
+        if not allowed_file(file.filename):
+            raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다.")
+        
+        print(f"[INFO] Filename: {file.filename}")
+        contents = await file.read()
+        print(f"[INFO] File size: {len(contents)} bytes")
+
+        # tmp_path = f"/tmp/{file.filename}"
+        # with open(tmp_path, "wb") as f:
+        #     f.write(contents)
+        # mp3_path = convert_to_mp3(tmp_path)
+        # result = analyze_audio(mp3_path)
+        # os.remove(mp3_path)
+        # return result
+    
+        return {"filename": file.filename, "size": len(contents)}
+    except Exception as e:
+        print(f"[ERROR] {str(e)}")
+        return {"error": str(e)}
