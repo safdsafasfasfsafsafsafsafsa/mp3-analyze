@@ -1,39 +1,41 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import os
 import librosa
 import numpy as np
+from pydub import AudioSegment
 import matplotlib.pyplot as plt
 import io
 import base64
-from pydub import AudioSegment
-import os
+import logging
 
 app = FastAPI()
 
-# 허용할 origin 리스트
-origins = [
-    "http://localhost:3000",  # 로컬 개발용
-    "https://mp3-analyze.onrender.com",  # 실제 배포 도메인 (필요하면 추가)
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # 또는 ["*"]로 전체 허용
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # 모든 HTTP 메서드 허용
-    allow_headers=["*"],  # 모든 HTTP 헤더 허용
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def allowed_file(filename):
+logging.basicConfig(format='(%(asctime)s) %(levelname)s:%(message)s',
+                    datefmt ='%m/%d %I:%M:%S %p',
+                    level=logging.INFO)
+logger = logging.getLogger("uvicorn.error")
+
+def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def convert_to_mp3(filepath):
     ext = filepath.rsplit('.', 1)[1].lower()
     if ext == 'mp3':
         return filepath
-
     sound = AudioSegment.from_file(filepath, format=ext)
     mp3_path = filepath.rsplit('.', 1)[0] + '.mp3'
     sound.export(mp3_path, format='mp3')
@@ -41,17 +43,19 @@ def convert_to_mp3(filepath):
     return mp3_path
 
 def analyze_audio(path):
+    logger.info('analyze 1')
     y, sr = librosa.load(path, sr=None)
+    logger.info('analyze 2')
     duration = librosa.get_duration(y=y, sr=sr)
     minutes = int(duration // 60)
     seconds = int(duration % 60)
-
-    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-
     duration_str = f"{minutes}:{seconds:02d}"
 
-    beats = np.atleast_1d(beat_frames)
-    beat_times = librosa.frames_to_time(beats, sr=sr)
+    logger.info('analyze 3')
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    logger.info('analyze 4')
+
+    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
     if beat_times.size > 0:
         rhythm_density = len(beat_frames) / (duration / 60)
@@ -60,7 +64,6 @@ def analyze_audio(path):
 
     rms = librosa.feature.rms(y=y)[0]
     avg_rms = float(np.mean(rms))
-
     peak = np.max(np.abs(y))
     crest_factor = float(peak / avg_rms) if avg_rms != 0 else 0
 
@@ -92,7 +95,6 @@ def analyze_audio(path):
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
-
     image_base64 = base64.b64encode(buf.read()).decode('utf-8')
     plt.close()
 
@@ -105,29 +107,34 @@ def analyze_audio(path):
         "image": image_base64
     }
 
-@app.get('/')
+@app.get("/")
 async def index():
-    return {"status": "running"}
+    return {"message": "Server is running."}
 
 @app.post("/analyze")
-async def analyze(file: UploadFile = File(...)):
+async def upload_and_analyze(file: UploadFile = File(...)):
     try:
-        if not allowed_file(file.filename):
+        logger.info('fast 1')
+        filename = file.filename
+        logger.info(f"파일 수신: {filename}")
+        if not filename or not allowed_file(filename):
             raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다.")
-        
-        print(f"[INFO] Filename: {file.filename}")
-        contents = await file.read()
-        print(f"[INFO] File size: {len(contents)} bytes")
 
-        # tmp_path = f"/tmp/{file.filename}"
-        # with open(tmp_path, "wb") as f:
-        #     f.write(contents)
-        # mp3_path = convert_to_mp3(tmp_path)
-        # result = analyze_audio(mp3_path)
-        # os.remove(mp3_path)
-        # return result
-    
-        return {"filename": file.filename, "size": len(contents)}
+        logger.info('fast 2')
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        with open(file_path, "wb") as f:
+            contents = await file.read()
+            logger.info(f"파일 크기: {len(contents)} bytes")
+            f.write(contents)
+
+        logger.info('fast 3')
+        file_path = convert_to_mp3(file_path)
+
+        logger.info('fast 4')
+        result = analyze_audio(file_path)
+
+        logger.info(f"결과 전달: {result}")
+        return JSONResponse(content=result)
     except Exception as e:
-        print(f"[ERROR] {str(e)}")
-        return {"error": str(e)}
+        logger.error(f"Error: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)

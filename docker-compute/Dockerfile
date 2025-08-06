@@ -18,4 +18,4 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # 6. uvicorn으로 FastAPI 실행
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]

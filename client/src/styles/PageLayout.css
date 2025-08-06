@@ -34,3 +34,14 @@
   font-size: 30px;
   padding-bottom: 30px;
 }
+
+.analyze-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* .analyze-page__result {
+  display: block;
+  margin: 10px 0;
+} */

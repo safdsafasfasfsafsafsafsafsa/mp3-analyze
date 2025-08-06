@@ -1,4 +1,3 @@
-import axios from "../../api/axios";
 import React, { useEffect, useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FileContext } from "../../contexts/FileContext";
@@ -10,7 +9,7 @@ export default function AnalyzePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const result = location.state?.result;
-  const resultImage = location.state?.result?.image;
+  // const resultImage = location.state?.result?.image;
 
   const { file } = useContext(FileContext);
 
@@ -23,8 +22,20 @@ export default function AnalyzePage() {
 
   return file ? (
     <section className="analyze-page centered">
-      <p>{file.bpm}</p>
-      <img src={`data:image/png;base64,${resultImage}`} alt="img" />
+      <p className="analyze-page__result">BPM: {result.bpm}</p>
+      <p className="analyze-page__result">길이: {result.duration}</p>
+      <p className="analyze-page__result">리듬 밀도: {result.rhythm_density}</p>
+      <p className="analyze-page__result">
+        크레스트 팩터: {result.crest_factor}
+      </p>
+      <p className="analyze-page__result">믹싱: {result.mixing_type}</p>
+      {result.image && (
+        <img
+          className="analyze-page__result"
+          src={`data:image/png;base64,${result.image}`}
+          alt="분석 그래프"
+        />
+      )}
     </section>
   ) : (
     <section className="analyze-page centered">nnn</section>
