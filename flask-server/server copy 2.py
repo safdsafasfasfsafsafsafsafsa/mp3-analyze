@@ -9,14 +9,21 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import traceback
+import logging
 
 app = Flask(__name__)
-# CORS(app, origins=["http://localhost:3000"])
+# CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 CORS(app)
 
 UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# os.environ["NUMBA_DISABLE_JIT"] = "1"   # jit 충돌 테스트
+
+logging.basicConfig(format='(%(asctime)s) %(levelname)s:%(message)s',
+                    datefmt ='%m/%d %I:%M:%S %p',
+                    level=logging.DEBUG)
+logger = logging.getLogger()
 
 # 파일 확장자 확인 함수
 def allowed_file(filename):
@@ -36,20 +43,25 @@ def convert_to_mp3(filepath):
 
 # 분석 함수
 def analyze_audio(path):
-    # 오디오 로딩
+    # 오디오 로딩(타임아웃 문제?)
+    logger.debug('analyze 1')
     y, sr = librosa.load(path, sr=None)
+    logger.debug('analyze 2')
     minutes = int(duration // 60)
     seconds = int(duration % 60)
 
-    # BPM 추출
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+    # BPM 추출(여기서 numba - jit 이슈 나오는거 같은데)
+    logger.debug('analyze 3')
+    # tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)    # 왜 같은 코드가 2번 나왔지?
+    logger.debug('analyze 4')
 
     # Duration
     duration = librosa.get_duration(y=y, sr=sr)
     duration_str = f"{minutes}:{seconds:02d}"
 
     # Rhythm Density
-    _, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    # _, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     beats = np.atleast_1d(beats)  # 배열이 아닐 경우 강제로 배열로 변환
     beat_times = librosa.frames_to_time(beats, sr=sr)
 
@@ -118,21 +130,30 @@ def index():
 @app.route('/analyze', methods=['POST'])
 def upload_and_analyze():
     try:
+        logger.debug('fl 1')
         if 'file' not in request.files:
             return jsonify({"error": "파일이 첨부되지 않았습니다."}), 400
-
+        
+        logger.debug('fl 2')
         file = request.files['file']
+        logger.debug('fl 3')
         if file.filename == '' or not allowed_file(file.filename):
             return jsonify({"error": "지원하지 않는 파일 형식입니다."}), 400
 
+        logger.debug('fl 4')
         filename = secure_filename(file.filename)
+        logger.debug('fl 5')
         filepath = os.path.join(UPLOAD_FOLDER, filename)
+        logger.debug('fl 6')
         file.save(filepath)
 
         # 필요시 mp3로 변환
+        logger.debug('fl 7')
         filepath = convert_to_mp3(filepath)
 
+        logger.debug('fl 8')
         result = analyze_audio(filepath)
+
         return jsonify(result)
     except Exception as e:
         traceback.print_exc()
