@@ -12,6 +12,10 @@ FASTAPI_SERVER_URL = "http://docker-fastapi-host:8000/analyze"
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'mp3', 'wav', 'flac'}
 
+@app.route('/')
+def index():
+    return 'Server is running.'
+
 @app.route('/analyze', methods=['POST'])
 def upload_and_analyze():
     if 'file' not in request.files:
