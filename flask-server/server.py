@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import os
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
