@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,6 +9,20 @@ from pydub import AudioSegment
 import os
 
 app = FastAPI()
+
+# 허용할 origin 리스트
+origins = [
+    "http://localhost:3000",  # 로컬 개발용
+    "https://mp3-analyze.onrender.com",  # 실제 배포 도메인 (필요하면 추가)
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # 또는 ["*"]로 전체 허용
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용
+    allow_headers=["*"],  # 모든 HTTP 헤더 허용
+)
 
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
 
@@ -89,6 +104,10 @@ def analyze_audio(path):
         "mixing_type": mixing_type,
         "image": image_base64
     }
+
+@app.get('/')
+async def index():
+    return 'Server is running.'
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):

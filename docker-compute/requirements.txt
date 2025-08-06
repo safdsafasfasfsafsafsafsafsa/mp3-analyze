@@ -3,3 +3,6 @@ uvicorn
 matplotlib
 numpy
 pandas
+librosa
+pydub
+python-multipart

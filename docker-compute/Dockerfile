@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y ffmpeg
 
 # 4. requirements 복사 및 설치
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
 # 5. 소스 코드 복사
 COPY . .
