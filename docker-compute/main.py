@@ -48,6 +48,7 @@ def analyze_audio(path):
     # 모듈 호출
     logger.info('analyze 1')
     y, sr = librosa.load(path, sr=None)
+    hop_length = 512  # 일정하게 유지
     logger.info('analyze 2')
 
     # 곡 길이
@@ -85,18 +86,21 @@ def analyze_audio(path):
     else:
         mixing_type = "극단적 다이내믹 (클래식, 언프로세스드 등)"
 
-    # pitch, octave
+    # pitch, octave 이미지
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
-    librosa.display.specshow(chroma, y_axis='chroma', x_axis='time')
-    plt.colorbar()
+    librosa.display.specshow(chroma, y_axis='chroma', x_axis='time', sr=sr, hop_length=hop_length)
+    plt.colorbar(format='%+2.0f dB')
+    plt.title("Chromagram")
+    plt.tight_layout()
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    pitch_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    buf_pitch = io.BytesIO()
+    plt.savefig(buf_pitch, format='png')
+    buf_pitch.seek(0)
+    pitch_image_base64 = base64.b64encode(buf_pitch.read()).decode('utf-8')
     plt.close()
+    buf_pitch.close()
 
-    # 이미지 생성 & base64 변환
+    # RMS & 비트 이미지 생성, base64 변환
     plt.figure(figsize=(14, 4))
     times = librosa.times_like(rms, sr=sr)
     plt.plot(times, rms, label='RMS Energy')
@@ -111,11 +115,12 @@ def analyze_audio(path):
     plt.legend()
     plt.tight_layout()
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    buf_beat = io.BytesIO()
+    plt.savefig(buf_beat, format='png')
+    buf_beat.seek(0)
+    beat_image_base64 = base64.b64encode(buf_beat.read()).decode('utf-8')
     plt.close()
+    buf_beat.close()
 
     return {
         "bpm": round(float(tempo), 1),
@@ -123,8 +128,8 @@ def analyze_audio(path):
         "rhythm_density": round(rhythm_density, 2),
         "crest_factor": round(crest_factor, 2),
         "mixing_type": mixing_type,
-        "chroma": pitch_base64,
-        "image": image_base64
+        "pitch_image": pitch_image_base64,
+        "beat_image": beat_image_base64
     }
 
 @app.get("/")

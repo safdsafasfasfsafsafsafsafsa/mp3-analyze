@@ -30,11 +30,18 @@ export default function AnalyzePage() {
         크레스트 팩터(Peak/RMS): {result.crest_factor}
       </p>
       <p className="analyze-page__result">믹싱: {result.mixing_type}</p>
-      {result.image && (
+      {result.pitch_image && (
         <img
           className="analyze-page__result"
-          src={`data:image/png;base64,${result.image}`}
-          alt="분석 그래프"
+          src={`data:image/png;base64,${result.pitch_image}`}
+          alt="피치 분석 그래프"
+        />
+      )}
+      {result.beat_image && (
+        <img
+          className="analyze-page__result"
+          src={`data:image/png;base64,${result.beat_image}`}
+          alt="비트 분석 그래프"
         />
       )}
     </section>
