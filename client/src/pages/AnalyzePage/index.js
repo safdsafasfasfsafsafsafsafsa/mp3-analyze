@@ -9,7 +9,6 @@ export default function AnalyzePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const result = location.state?.result;
-  // const resultImage = location.state?.result?.image;
 
   const { file } = useContext(FileContext);
 

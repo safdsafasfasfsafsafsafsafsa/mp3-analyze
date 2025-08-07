@@ -1,16 +1,19 @@
-import React, { useRef, useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileContext } from "../../contexts/FileContext";
 
 import axios from "../../api/axios";
-import requests from "../../api/requests";
+// import requests from "../../api/requests";
 import Submit from "../../components/Submit";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 import "../../styles/Reset.css";
 import "../../styles/PageLayout.css";
 
 export default function MainPage() {
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
   const { file } = useContext(FileContext);
 
   useEffect(() => {
@@ -27,6 +30,7 @@ export default function MainPage() {
     formData.append("file", newFile);
 
     try {
+      setLoading(true);
       console.log("loading...1");
 
       const response = await axios.post("/analyze", formData, {
@@ -44,14 +48,23 @@ export default function MainPage() {
     } catch (error) {
       console.error("Error:", error);
       console.error("upload error:", error.response?.data || error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section className="main-page centered">
-      <h1 className="title-h1">Insert music file</h1>
-      <h2 className="title-h2">mp3, wav etc</h2>
-      <Submit nav="analyze" />
-    </section>
+    <div>
+      {loading && <LoadingSpinner />}
+      {!loading && (
+        <>
+          <section className="main-page centered">
+            <h1 className="title-h1">Insert music file</h1>
+            <h2 className="title-h2">mp3, wav etc</h2>
+            <Submit nav="analyze" />
+          </section>
+        </>
+      )}
+    </div>
   );
 }
