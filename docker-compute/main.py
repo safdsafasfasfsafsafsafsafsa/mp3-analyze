@@ -43,14 +43,18 @@ def convert_to_mp3(filepath):
     return mp3_path
 
 def analyze_audio(path):
+    # 모듈 호출
     logger.info('analyze 1')
     y, sr = librosa.load(path, sr=None)
     logger.info('analyze 2')
+
+    # 곡 길이
     duration = librosa.get_duration(y=y, sr=sr)
     minutes = int(duration // 60)
     seconds = int(duration % 60)
     duration_str = f"{minutes}:{seconds:02d}"
 
+    # bpm & 리듬 밀도
     logger.info('analyze 3')
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     logger.info('analyze 4')
@@ -62,6 +66,7 @@ def analyze_audio(path):
     else:
         rhythm_density = 0
 
+    # 크레스트 팩터 & 믹싱 수준
     rms = librosa.feature.rms(y=y)[0]
     avg_rms = float(np.mean(rms))
     peak = np.max(np.abs(y))
@@ -78,6 +83,7 @@ def analyze_audio(path):
     else:
         mixing_type = "극단적 다이내믹 (클래식, 언프로세스드 등)"
 
+    # 이미지 생성 & base64 변환
     plt.figure(figsize=(14, 4))
     times = librosa.times_like(rms, sr=sr)
     plt.plot(times, rms, label='RMS Energy')
@@ -124,12 +130,14 @@ async def upload_and_analyze(file: UploadFile = File(...)):
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         with open(file_path, "wb") as f:
             contents = await file.read()
-            logger.info(f"파일 크기: {len(contents)} bytes")
+            # logger.info(f"파일 크기: {len(contents)} bytes")
             f.write(contents)
 
+        # 필요 시 mp3 변환
         logger.info('fast 3')
         file_path = convert_to_mp3(file_path)
 
+        # 취합하고 json 묶어서 전달
         logger.info('fast 4')
         result = analyze_audio(file_path)
 
