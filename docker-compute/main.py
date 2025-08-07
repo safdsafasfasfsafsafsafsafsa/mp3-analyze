@@ -20,6 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# https://bo-10000.tistory.com/entry/Librosa-musicaudio-processing-library-Librosa-%EC%82%AC%EC%9A%A9%EB%B2%95-Tutorial-3-Audio-feature-extraction
+
 UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'flac'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -83,6 +85,17 @@ def analyze_audio(path):
     else:
         mixing_type = "극단적 다이내믹 (클래식, 언프로세스드 등)"
 
+    # pitch, octave
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+    librosa.display.specshow(chroma, y_axis='chroma', x_axis='time')
+    plt.colorbar()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    pitch_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close()
+
     # 이미지 생성 & base64 변환
     plt.figure(figsize=(14, 4))
     times = librosa.times_like(rms, sr=sr)
@@ -110,6 +123,7 @@ def analyze_audio(path):
         "rhythm_density": round(rhythm_density, 2),
         "crest_factor": round(crest_factor, 2),
         "mixing_type": mixing_type,
+        "chroma": pitch_base64,
         "image": image_base64
     }
 
