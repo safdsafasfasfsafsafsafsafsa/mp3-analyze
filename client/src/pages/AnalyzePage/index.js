@@ -23,8 +23,8 @@ export default function AnalyzePage() {
     <section className="analyze-page centered">
       <p className="analyze-page__result">파일 이름: {file.name}</p>
       <p className="analyze-page__result">파일 크기: {file.size}</p>
-      <p className="analyze-page__result">BPM: {result.bpm}</p>
       <p className="analyze-page__result">길이: {result.duration}</p>
+      <p className="analyze-page__result">BPM: {result.bpm}</p>
       <p className="analyze-page__result">리듬 밀도: {result.rhythm_density}</p>
       <p className="analyze-page__result">
         크레스트 팩터(Peak/RMS): {result.crest_factor}

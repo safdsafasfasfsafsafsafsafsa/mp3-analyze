@@ -46,10 +46,8 @@ def convert_to_mp3(filepath):
 
 def analyze_audio(path):
     # 모듈 호출
-    logger.info('analyze 1')
     y, sr = librosa.load(path, sr=None)
     hop_length = 512  # 일정하게 유지
-    logger.info('analyze 2')
 
     # 곡 길이
     duration = librosa.get_duration(y=y, sr=sr)
@@ -58,9 +56,7 @@ def analyze_audio(path):
     duration_str = f"{minutes}:{seconds:02d}"
 
     # bpm & 리듬 밀도
-    logger.info('analyze 3')
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-    logger.info('analyze 4')
 
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
@@ -69,7 +65,7 @@ def analyze_audio(path):
     else:
         rhythm_density = 0
 
-    # 크레스트 팩터 & 믹싱 수준
+    # 크레스트 팩터 & 믹싱 강도
     rms = librosa.feature.rms(y=y)[0]
     avg_rms = float(np.mean(rms))
     peak = np.max(np.abs(y))
@@ -139,13 +135,11 @@ async def index():
 @app.post("/analyze")
 async def upload_and_analyze(file: UploadFile = File(...)):
     try:
-        logger.info('fast 1')
         filename = file.filename
         logger.info(f"파일 수신: {filename}")
         if not filename or not allowed_file(filename):
             raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식입니다.")
 
-        logger.info('fast 2')
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         with open(file_path, "wb") as f:
             contents = await file.read()
@@ -153,11 +147,9 @@ async def upload_and_analyze(file: UploadFile = File(...)):
             f.write(contents)
 
         # 필요 시 mp3 변환
-        logger.info('fast 3')
         file_path = convert_to_mp3(file_path)
 
         # 취합하고 json 묶어서 전달
-        logger.info('fast 4')
         result = analyze_audio(file_path)
 
         logger.info(f"결과 전달: {result}")
