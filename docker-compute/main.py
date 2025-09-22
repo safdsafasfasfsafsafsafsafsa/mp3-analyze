@@ -55,7 +55,7 @@ def analyze_audio(path):
     seconds = int(duration % 60)
     duration_str = f"{minutes}:{seconds:02d}"
 
-    # bpm & 리듬 밀도
+    # 1. bpm & 리듬 밀도
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
 
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
@@ -65,7 +65,7 @@ def analyze_audio(path):
     else:
         rhythm_density = 0
 
-    # 크레스트 팩터 & 믹싱 강도
+    # 2. 크레스트 팩터 & 믹싱 강도
     rms = librosa.feature.rms(y=y)[0]
     avg_rms = float(np.mean(rms))
     peak = np.max(np.abs(y))
@@ -82,7 +82,8 @@ def analyze_audio(path):
     else:
         mixing_type = "극단적 다이내믹 (클래식, 언프로세스드 등)"
 
-    # pitch, octave 이미지
+    # 3. pitch, octave 이미지
+    plt.figure(figsize=(18, 6))
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
     librosa.display.specshow(chroma, y_axis='chroma', x_axis='time', sr=sr, hop_length=hop_length)
     plt.colorbar(format='%+2.0f dB')
@@ -96,8 +97,8 @@ def analyze_audio(path):
     plt.close()
     buf_pitch.close()
 
-    # RMS & 비트 이미지 생성, base64 변환
-    plt.figure(figsize=(14, 4))
+    # 4. RMS & 비트 이미지 생성, base64 변환
+    plt.figure(figsize=(14, 6))
     times = librosa.times_like(rms, sr=sr)
     plt.plot(times, rms, label='RMS Energy')
     plt.vlines(beat_times, 0, np.max(rms), color='r', alpha=0.5, linestyle='--', label='Beats')
@@ -118,6 +119,26 @@ def analyze_audio(path):
     plt.close()
     buf_beat.close()
 
+    # 5. MFCCs 추출
+    mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+
+    # MFCC 통계 (예: 평균)
+    avg_mfccs = np.mean(mfccs, axis=1)
+
+    # MFCCs 시각화
+    plt.figure(figsize=(14, 6))
+    librosa.display.specshow(mfccs, sr=sr, x_axis='time')
+    plt.colorbar()
+    plt.title('MFCC')
+    plt.tight_layout()
+
+    buf_mfcc = io.BytesIO()
+    plt.savefig(buf_mfcc, format='png')
+    buf_mfcc.seek(0)
+    mfcc_image_base64 = base64.b64encode(buf_mfcc.read()).decode('utf-8')
+    plt.close()
+    buf_mfcc.close()
+
     return {
         "bpm": round(float(tempo), 1),
         "duration": duration_str,
@@ -125,7 +146,9 @@ def analyze_audio(path):
         "crest_factor": round(crest_factor, 2),
         "mixing_type": mixing_type,
         "pitch_image": pitch_image_base64,
-        "beat_image": beat_image_base64
+        "beat_image": beat_image_base64,
+        "mfcc_image": mfcc_image_base64,
+        "mfcc_mean": avg_mfccs.tolist()  # numpy array를 list로 변환
     }
 
 @app.get("/")
